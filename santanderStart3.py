@@ -60,7 +60,7 @@ def status_change(x):
     return label
 
     
-def post_clean_data1(df):
+def post_clean_feature(df):
     """Clean data after loading all interesting rows, because the cleaning needs information from all the rows
     """
     # age
@@ -75,6 +75,7 @@ def post_clean_data1(df):
     df.loc[df.fecha_alta.isnull(),"fecha_alta"] = dates.loc[median_date,"fecha_alta"]
            
     # renta
+    df.renta = pd.to_numeric(df.renta, errors='coerce')
     incomes = df.loc[df.renta.notnull(),:].groupby("cod_prov").agg({"renta":{"MedianIncome":np.median}})
     incomes.sort_values(by=("renta","MedianIncome"),inplace=True)
     incomes.reset_index(inplace=True)
@@ -92,6 +93,11 @@ def post_clean_data1(df):
     df.loc[df.renta.isnull(),"renta"] = df.loc[df.renta.notnull(),"renta"].median()
     df.sort_values(by="fecha_dato",inplace=True)
     
+    return df
+    
+def post_clean_target(df):
+    """Clean target
+    """
     # ind_nomina_ult1
     df.loc[df.ind_nomina_ult1.isnull(), "ind_nomina_ult1"] = 0
     df.loc[df.ind_nom_pens_ult1.isnull(), "ind_nom_pens_ult1"] = 0
@@ -135,7 +141,7 @@ def post_clean_data1(df):
     unique_months["month_next_id"] = 1 + unique_months["month_id"]
     unique_months.rename(columns={0:"fecha_dato"},inplace=True)
     df = pd.merge(df,unique_months,on="fecha_dato")
-    df.drop(['month'], axis=1, inplace=True)
+#    df.drop(['month'], axis=1, inplace=True)
     
     df.loc[:, target_cols] = df.loc[:, [i for i in target_cols]+["ncodpers"]].\
         groupby("ncodpers").transform(status_change)
@@ -161,9 +167,12 @@ if __name__=='__main__':
         if train_tmp.shape[0]>0:
             train_acc.append(train_tmp)
         print('Chunk {}, train_tmp shape {}'.format(i, train_tmp.shape))
+        if i>50:
+            break
         
     train_acc = pd.concat(train_acc)
-    train_acc = post_clean_data1(train_acc)
+    train_acc = post_clean_feature(train_acc)
+    train_acc = post_clean_target(train_acc)
     train_acc.to_csv('train_mj1.csv', index=False)
     
     test_acc = pd.read_csv('test_ver2.csv.zip', 
@@ -172,5 +181,5 @@ if __name__=='__main__':
                            "ult_fec_cli_1t":str,
                            "indext":str}, low_memory=False)
     test_acc = process_chunk_data(test_acc)
-    test_acc = post_clean_data1(test_acc)
+    test_acc = post_clean_feature(test_acc)
     
