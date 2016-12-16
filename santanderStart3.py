@@ -136,19 +136,23 @@ def post_clean_target(df):
     for col in target_cols:
         df[col] = df[col].astype(int)
         
-    unique_months = pd.DataFrame(pd.Series(df.fecha_dato.unique()).sort_values()).reset_index(drop=True)
+    unique_months = pd.DataFrame(pd.Series(df.fecha_dato.unique()).\
+                                 sort_values()).reset_index(drop=True)
     unique_months["month_id"] = pd.Series(range(1,1+unique_months.size)) 
     unique_months["month_next_id"] = 1 + unique_months["month_id"]
     unique_months.rename(columns={0:"fecha_dato"},inplace=True)
     df = pd.merge(df,unique_months,on="fecha_dato")
-#    df.drop(['month'], axis=1, inplace=True)
+
+    print('changing status')
     
     df.loc[:, target_cols] = df.loc[:, [i for i in target_cols]+["ncodpers"]].\
-        groupby("ncodpers").transform(status_change)
+        groupby("ncodpers").transform(lambda x: x.diff().fillna(0))
+    
+    print('melting')    
     
     df = pd.melt(df, id_vars   = [col for col in df.columns if col not in target_cols],
                 value_vars= [col for col in target_cols])
-    df = df.loc[df.value=="Added",:]
+#    df = df.loc[df.value==1,:]
         
     return df
     
@@ -167,19 +171,18 @@ if __name__=='__main__':
         if train_tmp.shape[0]>0:
             train_acc.append(train_tmp)
         print('Chunk {}, train_tmp shape {}'.format(i, train_tmp.shape))
-        if i>50:
+        if i>25:
             break
         
     train_acc = pd.concat(train_acc)
     train_acc = post_clean_feature(train_acc)
     train_acc = post_clean_target(train_acc)
-    train_acc.to_csv('train_mj1.csv', index=False)
-    
-    test_acc = pd.read_csv('test_ver2.csv.zip', 
-                           dtype={"sexo":str, 
-                           "ind_nuevo":str, 
-                           "ult_fec_cli_1t":str,
-                           "indext":str}, low_memory=False)
-    test_acc = process_chunk_data(test_acc)
-    test_acc = post_clean_feature(test_acc)
-    
+#    train_acc.to_csv('train_mj1.csv', index=False)
+#    
+#    test_acc = pd.read_csv('test_ver2.csv.zip', 
+#                           dtype={"sexo":str, 
+#                           "ind_nuevo":str, 
+#                           "ult_fec_cli_1t":str,
+#                           "indext":str}, low_memory=False)
+#    test_acc = process_chunk_data(test_acc)
+#    test_acc = post_clean_feature(test_acc)
