@@ -8,8 +8,8 @@ This is a temporary script file.
 import numpy as np
 import pandas as pd
 
-limit_rows = 700000 # 7000000
-limit_people = 1200 #120000
+limit_rows = 1700000 # 7000000
+limit_people = 12000 #120000
 df = pd.read_csv('train_ver2.csv.zip', dtype={"sexo":str,
                                                     "ind_nuevo":str,
                                                     "ult_fec_cli_1t":str,
@@ -76,12 +76,12 @@ incomes.reset_index(inplace=True)
 incomes.cod_prov = incomes.cod_prov.astype("category", categories=[i for i in df.cod_prov.unique()],ordered=False)
 incomes.head()
 
-grouped        = df.groupby("cod_prov").agg({"renta":lambda x: x.median(skipna=True)}).reset_index()
-new_incomes    = pd.merge(df,grouped,how="inner",on="cod_prov").loc[:, ["cod_prov","renta_y"]]
-new_incomes    = new_incomes.rename(columns={"renta_y":"renta"}).sort_values("renta").sort_values("cod_prov")
+grouped = df.groupby("cod_prov").agg({"renta":lambda x: x.median(skipna=True)}).reset_index()
+new_incomes = pd.merge(df,grouped,how="inner",on="cod_prov").loc[:, ["cod_prov","renta_y"]]
+new_incomes = new_incomes.rename(columns={"renta_y":"renta"}).sort_values("renta").sort_values("cod_prov")
 df.sort_values("cod_prov",inplace=True)
-df             = df.reset_index()
-new_incomes    = new_incomes.reset_index()
+df = df.reset_index()
+new_incomes = new_incomes.reset_index()
 
 df.loc[df.renta.isnull(),"renta"] = new_incomes.loc[df.renta.isnull(),"renta"].reset_index()
 df.loc[df.renta.isnull(),"renta"] = df.loc[df.renta.notnull(),"renta"].median()
@@ -138,6 +138,7 @@ unique_months["month_id"] = pd.Series(range(1,1+unique_months.size))
 unique_months["month_next_id"] = 1 + unique_months["month_id"]
 unique_months.rename(columns={0:"fecha_dato"},inplace=True)
 df = pd.merge(df,unique_months,on="fecha_dato")
+df.drop(['month'], axis=1, inplace=True)
 
 #%%
 def status_change(x):
@@ -159,5 +160,7 @@ df = pd.melt(df, id_vars   = [col for col in df.columns if col not in target_col
 df = df.loc[df.value=="Added",:]
 df.shape
 
-#%%
-df.drop(['month'], axis=1, inplace=True)
+#%% find May and June
+month_idx = (df.fecha_dato == pd.Timestamp('2015-01-28 00:00:00'))|\
+            (df.fecha_dato == pd.Timestamp('2015-02-28 00:00:00'))
+month_idx = month_idx[month_idx]
