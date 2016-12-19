@@ -398,7 +398,8 @@ def cv_predict_xgb(clfxgb, x_train, y_train, x_test, cv=3, random_state=0, esr=3
         ntree.append(best_ntree_limit)
         # validation set
         y_pred2 = clfxgb.predict_proba(x_train2, ntree_limit=best_ntree_limit)
-        mlogloss.append(metrics.log_loss(y_train2, y_pred2))
+        mlogloss.append(metrics.log_loss(y_train2, y_pred2, 
+                        labels=list(range(22))))
         y_train_pred[test_index,:] = y_pred2
         # test set
         preds = clfxgb.predict_proba(x_test, ntree_limit=best_ntree_limit2)

@@ -42,7 +42,7 @@ param['min_child_weight'] = 1
 param['subsample'] = 0.7
 param['colsample_bytree'] = 0.7
 param['seed'] = 0
-param['n_estimators'] = 200
+param['n_estimators'] = 10
 
 #clfxgb = xgb.XGBClassifier()
 #clfxgb.set_params(**param)
