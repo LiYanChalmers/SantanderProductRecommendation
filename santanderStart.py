@@ -524,5 +524,31 @@ def mp_lag2(mp_lag_in):
         
     return resultdict
 
+def save_submission(filename, y_pred, le):
+#    target_cols = ['ind_ahor_fin_ult1','ind_aval_fin_ult1','ind_cco_fin_ult1',
+#    'ind_cder_fin_ult1','ind_cno_fin_ult1','ind_ctju_fin_ult1',
+#    'ind_ctma_fin_ult1','ind_ctop_fin_ult1','ind_ctpp_fin_ult1',
+#    'ind_deco_fin_ult1','ind_deme_fin_ult1','ind_dela_fin_ult1',
+#    'ind_ecue_fin_ult1','ind_fond_fin_ult1','ind_hip_fin_ult1',
+#    'ind_plan_fin_ult1','ind_pres_fin_ult1','ind_reca_fin_ult1',
+#    'ind_tjcr_fin_ult1','ind_valo_fin_ult1','ind_viv_fin_ult1',
+#    'ind_nomina_ult1','ind_nom_pens_ult1','ind_recibo_ult1']
+#    target_cols = target_cols[2:]
+#    target_cols = np.array(target_cols)
+    
+    _, _, x_test = read_data('data_for_train.pkl')
+    test_id = x_test.ncodpers.copy()
+    products_in_may = read_data('products_in_may.pkl')
+    y_pred_df = pd.DataFrame(y_pred, index=test_id, columns=target_cols)
+    y_pred_df.reset_index(drop=False, inplace=True)
+    y_pred_df = y_pred_df.subtract(products_in_may, axis='index')
+    y_pred_df.drop(['ncodpers'], axis=1, inplace=True)
+    y_pred = y_pred_df.as_matrix()
+    preds = np.argsort(y_pred, axis=1)
+    preds = np.fliplr(preds)[:,:7]
+    final_preds = le.inverse_transform(preds)
+    final_preds = [" ".join(list(x)) for x in final_preds]
+    out_df = pd.DataFrame({'ncodpers':test_id, 'added_products':final_preds})
+    out_df.to_csv(filename, index=False)
     
 #if __name__=='__main__':
