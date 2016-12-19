@@ -1,3 +1,5 @@
 train_ver2.csv
 test_ver2.csv
 *.csv
+*.pkl
+__pycache__/
