@@ -3,6 +3,8 @@
 Created on Fri Dec 16 16:00:01 2016
 
 @author: celin
+
+to-do: 1. read_data and save_data can read and write .pkl.zip files
 """
 
 import pandas as pd
@@ -13,10 +15,12 @@ import datetime
 from operator import sub
 import pickle
 from multiprocessing import Queue, Process
+import multiprocessing as mp
 import os
+import zipfile
 
 import xgboost as xgb
-from sklearn import preprocessing, ensemble
+from sklearn import preprocessing, ensemble, model_selection, metrics
 
 mapping_dict = {
 'ind_empleado'  : {-99:0, 'N':1, 'B':2, 'F':3, 'A':4, 'S':5},
@@ -318,7 +322,7 @@ def post_clean_target(df):
     return df
     
 def save_data(file_name, data):
-    """File name must ends with .pkl
+    """File name must ends with .pkl or .pkl.zip
     """
     with open(file_name, 'wb') as f:
         pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
@@ -374,34 +378,41 @@ def xgb_gridcv(reg, params, x_train, y_train, x_test, cv=3, random_state=0):
           
     return y_test_pred_list,y_train_pred_list,mae_list,ntree_list,params
     
-def cv_predict_xgb(reg, x_train, y_train, x_test, cv=3, random_state=0, esr=300):
+def cv_predict_xgb(params, num_rounds, x_train, y_train, x_test, cv=3, random_state=0, esr=300):
     kf = model_selection.KFold(n_splits=cv, shuffle=True, 
                                random_state=random_state)
-    mae = []
+    mlogloss = []
     ntree = []
     y_test_pred = []
-    y_train_pred = np.zeros((y_train.shape[0],))
+    y_train_pred = np.zeros((y_train.shape[0],22))
+    xgtest = xgb.DMatrix(x_test)
     for train_index, test_index in kf.split(x_train):
-        x_train1 = x_train.iloc[train_index]
-        y_train1 = y_train.iloc[train_index]
-        x_train2 = x_train.iloc[test_index]
-        y_train2 = y_train.iloc[test_index]
-        reg.fit(x_train1, y_train1, eval_metric=mae_xgb, verbose=True,
-                eval_set=[(x_train1, y_train1), (x_train2, y_train2)], 
-                early_stopping_rounds=esr)
-        ntree.append(reg.best_ntree_limit)
-#        reg.n_estimators = ntree[-1]
-#        reg.fit(x_train1, y_train1)
-        y_pred2 = reg.predict(x_train2)
-        y_train_pred[test_index] = y_pred2
-        mae.append(mae_invlogs(y_train2, y_pred2))
-        y_test_pred.append(reg.predict(x_test))
+        x_train1 = x_train[train_index]
+        y_train1 = y_train[train_index]
+        x_train2 = x_train[test_index]
+        y_train2 = y_train[test_index]
+        xgtrain = xgb.DMatrix(x_train1, label=y_train1)
+        xgvalid = xgb.DMatrix(x_train2, label=y_train2)
+        model = xgb.train(list(params.items()), xgtrain, num_rounds, 
+                          evals=[(xgvalid, 'valid')], early_stopping_rounds=esr)
         
-    mae = np.array(mae)
-    print('Mean: ', mae.mean(), ' std: ', mae.std())
+        best_ntree_limit = model.best_ntree_limit
+        best_ntree_limit2 = int(best_ntree_limit*cv/(cv-1))
+        ntree.append(best_ntree_limit)
+        y_pred2 = model.predict(xgvalid, ntree_limit=best_ntree_limit)
+        print(y_pred2.shape)
+        print(y_train2.shape)
+        mlogloss.append(metrics.log_loss(y_train2, y_pred2, 
+                                         labels=list(range(22))))
+        y_train_pred[test_index] = y_pred2
+        
+        preds = model.predict(xgtest, ntree_limit=best_ntree_limit2)
+        y_test_pred.append(preds)
+    mlogloss = np.array(mlogloss)
+    print('Mean: ', mlogloss.mean(), ' std: ', mlogloss.std())
     y_test_pred = np.mean(y_test_pred, axis=0)
     
-    return y_test_pred, y_train_pred, mae, ntree
+    return y_test_pred, y_train_pred, mlogloss, ntree
     
 def cv_predict_xgb_repeat(reg, x_train, y_train, x_test, 
                           cv=3, random_state=0, rep=10):
@@ -498,5 +509,20 @@ def mp_lag(mp_lag_in):
         p.join()
         
     return resultdict
+
+def mp_lag2(mp_lag_in):
+    df_ncodpers, ncodpers_list = mp_lag_in
+
+    pool = mp.Pool(processes=os.cpu_count()-1, maxtasksperchild=1000)
+    tasks = [pool.apply_async(add_lag_features, 
+    	(df_ncodpers.get_group(i).copy(),) ) for i in ncodpers_list]
+    for f in tasks:
+    	print(f.get())
+    pool.close()
+    pool.join()
+
+        
+    return resultdict
+
     
 #if __name__=='__main__':
