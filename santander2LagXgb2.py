@@ -5,7 +5,7 @@ Created on Mon Dec 19 08:54:23 2016
 
 @author: lyaa
 logloss CV->Mean:  1.04313591338  std:  0.00500556962423
-LB:
+LB:0.029642
 """
 
 from santanderStart import *
