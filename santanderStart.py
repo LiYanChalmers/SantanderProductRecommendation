@@ -378,14 +378,14 @@ def xgb_gridcv(reg, params, x_train, y_train, x_test, cv=3, random_state=0):
           
     return y_test_pred_list,y_train_pred_list,mae_list,ntree_list,params
     
-def cv_predict_xgb(clfxgb, x_train, y_train, x_test, cv=3, random_state=0, esr=300):
-    kf = model_selection.KFold(n_splits=cv, shuffle=True, 
+def cv_predict_xgb(clfxgb, x_train, y_train, x_test, cv=3, random_state=0, esr=10):
+    kf = model_selection.StratifiedKFold(n_splits=cv, shuffle=True, 
                                random_state=random_state)
     mlogloss = []
     ntree = []
     y_test_pred = []
     y_train_pred = np.zeros((y_train.shape[0],22))
-    for train_index, test_index in kf.split(x_train):
+    for train_index, test_index in kf.split(x_train, y_train):
         x_train1 = x_train.iloc[train_index]
         y_train1 = y_train.iloc[train_index]
         x_train2 = x_train.iloc[test_index]
@@ -411,7 +411,7 @@ def cv_predict_xgb(clfxgb, x_train, y_train, x_test, cv=3, random_state=0, esr=3
     return y_test_pred, y_train_pred, mlogloss, ntree
     
 def cv_predict_xgb_repeat(reg, x_train, y_train, x_test, 
-                          cv=3, random_state=0, rep=10):
+                          cv=3, random_state=0, rep=10, esr=10):
     y_test_pred = []
     y_train_pred = []
     np.random.seed(random_state)
@@ -419,7 +419,8 @@ def cv_predict_xgb_repeat(reg, x_train, y_train, x_test,
     for i in range(rep):
         tmp_test, tmp_train, _, _ = cv_predict_xgb(reg, x_train, y_train, 
                                                    x_test, cv, 
-                                                   np.random.randint(1000))
+                                                   np.random.randint(1000), 
+                                                   esr=esr)
         y_test_pred.append(tmp_test)
         y_train_pred.append(tmp_train)
         
