@@ -4,6 +4,8 @@
 Created on Mon Dec 19 08:54:23 2016
 
 @author: lyaa
+logloss CV->Mean:  1.03275552048  std:  0.00536395197864
+LB->0.0296469
 """
 
 from santanderStart import *
@@ -33,23 +35,23 @@ del train, test_june
 gc.collect()
 
 #%%
-param = {}
-param['objective'] = 'multi:softprob'
-param['learning_rate'] = 0.05
-param['max_depth'] = 8
-param['silent'] = 1
-param['min_child_weight'] = 1
-param['subsample'] = 0.7
-param['colsample_bytree'] = 0.7
-param['seed'] = 0
-param['n_estimators'] = 10
+#param = {}
+#param['objective'] = 'multi:softprob'
+#param['learning_rate'] = 0.05
+#param['max_depth'] = 8
+#param['silent'] = 1
+#param['min_child_weight'] = 1
+#param['subsample'] = 0.7
+#param['colsample_bytree'] = 0.7
+#param['seed'] = 0
+#param['n_estimators'] = 200
 
 #clfxgb = xgb.XGBClassifier()
 #clfxgb.set_params(**param)
 
 clfxgb = xgb.XGBClassifier(objective='multi:softprob', learning_rate=0.05, max_depth=8,
                            min_child_weight=1, subsample=0.7, colsample_bytree=0.7, seed=0, 
-                           n_estimators=2)
+                           n_estimators=200)
 
 #%%
 y_test_pred, y_train_pred, mlogloss, ntree = \
