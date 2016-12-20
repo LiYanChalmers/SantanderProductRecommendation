@@ -341,42 +341,39 @@ def xgb_randomcv(reg, params, x_train, y_train, x_test,
     param_list = list(model_selection.ParameterSampler(params, n_iters, seed1))
     y_test_pred_list = []
     y_train_pred_list = []
-    mae_list = []
+    obj_list = []
     ntree_list = []
     for p in param_list:
-        for k, v in p.items():
-            setattr(reg, k, v)
-        y_test_pred_, y_train_pred_, mae_, ntree_ = \
+        reg.set_params(**p)
+        y_test_pred_, y_train_pred_, obj_, ntree_ = \
             cv_predict_xgb(reg, x_train, y_train, x_test, cv, seed2)
         y_test_pred_list.append(y_test_pred_)
         y_train_pred_list.append(y_train_pred_)
-        mae_list.append(mae_)
+        obj_list.append(obj_)
         ntree_list.append(ntree_)
         
         
-    return y_test_pred_list,y_train_pred_list,mae_list,ntree_list,param_list
+    return y_test_pred_list,y_train_pred_list,obj_list,ntree_list,param_list
     
 def xgb_gridcv(reg, params, x_train, y_train, x_test, cv=3, random_state=0):
     np.random.seed(random_state)
-    seed1 = np.random.randint(10000)
     seed2 = np.random.randint(10000)    
     y_test_pred_list = []
     y_train_pred_list = []
-    mae_list = []
+    obj_list = []
     ntree_list = []
     if type(params) == dict:
         params = [params]
     for p in params:
-        for k, v in p.items():
-            setattr(reg, k, v)
-        y_test_pred_, y_train_pred_, mae_, ntree_ = \
+        reg.set_params(**p)
+        y_test_pred_, y_train_pred_, obj_, ntree_ = \
             cv_predict_xgb(reg, x_train, y_train, x_test, cv, seed2)
         y_test_pred_list.append(y_test_pred_)
         y_train_pred_list.append(y_train_pred_)
-        mae_list.append(mae_)
+        obj_list.append(obj_)
         ntree_list.append(ntree_)
           
-    return y_test_pred_list,y_train_pred_list,mae_list,ntree_list,params
+    return y_test_pred_list,y_train_pred_list,obj_list,ntree_list,params
     
 def cv_predict_xgb(clfxgb, x_train, y_train, x_test, cv=3, random_state=0, esr=10):
     kf = model_selection.StratifiedKFold(n_splits=cv, shuffle=True, 
