@@ -3,6 +3,35 @@
 Created on Tue Dec 20 13:17:37 2016
 
 @author: liyan
+
+Best:
+     {'colsample_bytree': 0.6,
+  'gamma': 3,
+  'learning_rate': 0.1,
+  'max_depth': 10,
+  'min_child_weight': 1,
+  'n_estimators': 3000,
+  'objective': 'multi:softprob',
+  'reg_alpha': 0,
+  'reg_lambda': 3,
+  'seed': 0,
+  'silent': 1,
+  'subsample': 0.6}
+  0.99473818
+Second:
+     {'colsample_bytree': 0.6,
+  'gamma': 3,
+  'learning_rate': 0.1,
+  'max_depth': 8,
+  'min_child_weight': 1,
+  'n_estimators': 3000,
+  'objective': 'multi:softprob',
+  'reg_alpha': 0,
+  'reg_lambda': 3,
+  'seed': 0,
+  'silent': 1,
+  'subsample': 0.5},
+  0.99508731
 """
 
 
