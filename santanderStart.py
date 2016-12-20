@@ -355,7 +355,7 @@ def xgb_randomcv(reg, params, x_train, y_train, x_test,
         
     return y_test_pred_list,y_train_pred_list,obj_list,ntree_list,param_list
     
-def xgb_gridcv(reg, params, x_train, y_train, x_test, cv=3, random_state=0):
+def xgb_gridcv(reg, params, x_train, y_train, x_test, cv=3, random_state=0, esr=10):
     np.random.seed(random_state)
     seed2 = np.random.randint(10000)    
     y_test_pred_list = []
@@ -367,7 +367,7 @@ def xgb_gridcv(reg, params, x_train, y_train, x_test, cv=3, random_state=0):
     for p in params:
         reg.set_params(**p)
         y_test_pred_, y_train_pred_, obj_, ntree_ = \
-            cv_predict_xgb(reg, x_train, y_train, x_test, cv, seed2)
+            cv_predict_xgb(reg, x_train, y_train, x_test, cv, seed2, esr)
         y_test_pred_list.append(y_test_pred_)
         y_train_pred_list.append(y_train_pred_)
         obj_list.append(obj_)
