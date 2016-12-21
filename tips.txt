@@ -37,3 +37,23 @@
 		13       112
 		12       101
 		14         1
+ 
+2. xgboost was slow on both Hebbe and Glenn, reinstalling xgboost solves this problem
+
+3. Features:
+	- lag features in 1)
+	- 2nd order combination of the categorical features
+	- sum of all product lag features from the same original feature
+	- diff of these lag features in row direction
+	- 2nd order combination of encoded product lag features
+
+4. Train on other months?
+	- no time to try
+
+5. Ensemble methods? 
+	- RF, EXT, LR, SVM...
+	- no time to optimize parameters
+	- ensemble weight from optimization or xgboost
+
+6. How to reorder columns in pandas?
+	- don't make mistakes
