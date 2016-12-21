@@ -3,6 +3,8 @@
 Created on Wed Dec 21 07:44:01 2016
 
 @author: celin
+Mean:  0.995561707492  std:  0.00597756611703
+LB: 0.0296749
 """
 
 
