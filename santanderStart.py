@@ -381,7 +381,8 @@ def cv_predict_xgb(clfxgb, x_train, y_train, x_test, cv=3, random_state=0, esr=1
     mlogloss = []
     ntree = []
     y_test_pred = []
-    y_train_pred = np.zeros((y_train.shape[0],22))
+    n_classes = np.unique(y_train).shape[0]
+    y_train_pred = np.zeros((y_train.shape[0],n_classes))
     for train_index, test_index in kf.split(x_train, y_train):
         x_train1 = x_train.iloc[train_index]
         y_train1 = y_train.iloc[train_index]
@@ -396,7 +397,7 @@ def cv_predict_xgb(clfxgb, x_train, y_train, x_test, cv=3, random_state=0, esr=1
         # validation set
         y_pred2 = clfxgb.predict_proba(x_train2, ntree_limit=best_ntree_limit)
         mlogloss.append(metrics.log_loss(y_train2, y_pred2, 
-                        labels=list(range(22))))
+                        labels=list(range(n_classes))))
         y_train_pred[test_index,:] = y_pred2
         # test set
         preds = clfxgb.predict_proba(x_test, ntree_limit=best_ntree_limit2)
