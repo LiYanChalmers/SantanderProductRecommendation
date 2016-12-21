@@ -57,3 +57,9 @@
 
 6. How to reorder columns in pandas?
 	- don't make mistakes
+
+7. mlogloss vs LB MAP
+	- mlogloss 	|	 MAP
+	1.03275552048	0.0296469
+	1.04313591338	0.029642
+	0.995561707492	0.0296749
