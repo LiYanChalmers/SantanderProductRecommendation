@@ -545,4 +545,47 @@ def save_submission(filename, y_pred, le, x_test, test_may):
     out_df = pd.DataFrame({'ncodpers':test_id, 'added_products':final_preds})
     out_df.to_csv(filename, index=False)
     
+def cv_predict(reg, x_train, y_train, x_test, cv=3, random_state=0):
+    kf = model_selection.StratifiedKFold(n_splits=cv, shuffle=True, 
+                               random_state=random_state)
+    obj = []
+    y_test_pred = []
+    y_train_pred = np.zeros((y_train.shape[0],))
+    for train_index, test_index in kf.split(x_train, y_train):
+        x_train1 = x_train.iloc[train_index]
+        y_train1 = y_train.iloc[train_index]
+        x_train2 = x_train.iloc[test_index]
+        y_train2 = y_train.iloc[test_index]
+        reg.fit(x_train1, y_train1)
+        y_pred2 = reg.predict_proba(x_train2)
+        y_train_pred[test_index] = y_pred2
+        obj.append(metrics.log_loss(y_train2, y_pred2, labels=list(range(22))))
+        y_test_pred.append(reg.predict(x_test))
+        
+    obj = np.array(obj)
+    print('Mean: ', obj.mean(), ' std: ', obj.std())
+    y_test_pred = np.mean(y_test_pred, axis=0)
+    
+    return y_test_pred, y_train_pred, obj
+
+def obj_opt(w, y_true, y_pred):
+    y_pred = np.average(y_pred, axis=0, weights=w)
+    return metrics.log_loss(y_true, y_pred)
+    
+def optimize_weights(initial_weights, y_train_preds, y_test_preds, y_train):
+    """Optimize weights
+    """
+    ndim = y_train_preds.shape[1]
+#    initial_weights = 1.0/ndim*np.ones((ndim, ))
+    bounds = [(0, 1) for i in range(ndim)]
+    constraints = {'type': 'eq', 'fun': lambda w: 1-sum(w)}
+    obj = partial(obj_opt, y_true=y_train, y_pred=y_train_pred)
+    res = optimize.minimize(obj, initial_weights,
+        bounds=bounds, constraints=constraints)
+    final_weights = res.x
+    weight_optimize_res = res
+    y_val = np.dot(y_test_preds, final_weights)
+    
+    return y_val, final_weights, weight_optimize_res, 
+    
 #if __name__=='__main__':
